@@ -2,8 +2,6 @@ module FliQt
 
 go 1.23
 
-toolchain go1.23.8
-
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/gin-gonic/gin v1.10.0
