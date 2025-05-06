@@ -1,6 +1,5 @@
 package di
 
-import "C"
 import (
 	"FliQt/internals/app/config"
 	"FliQt/internals/app/entity"
@@ -13,21 +12,31 @@ var WireGormSet = wire.NewSet(
 	NewMainDB,
 )
 
-func NewMainDB() (*gorm.DB, func(), error) {
-	return gormx.NewDB(&gormx.DBConfig{
-		Enabled: config.C.MySQL.Enabled,
-		Type:    config.C.MySQL.Type,
+func NewMainDB(cfg *config.Config) (*gorm.DB, func(), error) {
+	db, cleanup, err := gormx.NewDB(&gormx.DBConfig{
+		Enabled: cfg.MySQL.Enabled,
+		Type:    cfg.MySQL.Type,
 		Master: gormx.Connection{
-			Host:        config.C.MySQL.Host,
-			Port:        config.C.MySQL.Port,
-			User:        config.C.MySQL.User,
-			Password:    config.C.MySQL.Password,
-			DBName:      config.C.MySQL.DBName,
-			MaxIdleConn: config.C.MySQL.MaxIdleConn,
-			MaxOpenConn: config.C.MySQL.MaxOpenConn,
+			Host:        cfg.MySQL.Host,
+			Port:        cfg.MySQL.Port,
+			User:        cfg.MySQL.User,
+			Password:    cfg.MySQL.Password,
+			DBName:      cfg.MySQL.DBName,
+			MaxIdleConn: cfg.MySQL.MaxIdleConn,
+			MaxOpenConn: cfg.MySQL.MaxOpenConn,
 		},
-		Debug:         config.C.Gorm.Debug,
+		Debug:         cfg.Gorm.Debug,
 		AutoMigration: true,
-		GormConfig:    config.C.Gorm.ToGormConfig(),
+		GormConfig:    cfg.Gorm.ToGormConfig(),
 	}, entity.AutoMigrate())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// 執行 seed
+	if seedErr := entity.SeedInitialData(db); seedErr != nil {
+		return nil, nil, seedErr
+	}
+
+	return db, cleanup, nil
 }

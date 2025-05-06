@@ -2,13 +2,17 @@ package service
 
 import (
 	"FliQt/internals/app/dto"
+	"FliQt/internals/app/enum"
 	"FliQt/internals/app/repository"
+	"FliQt/pkg/util"
+	"context"
 )
 
 var _ ILeaveService = (*LeaveService)(nil)
 
 type ILeaveService interface {
-	ApplyLeave(req dto.LeaveRequest) error
+	Create(ctx context.Context, cmd dto.LeaveRecordCreateCommand) error
+	QueryLeaveType(ctx context.Context) ([]*dto.LeaveTypeResult, error)
 }
 
 type LeaveService struct {
@@ -19,6 +23,12 @@ func NewLeaveService(r *repository.Repo) ILeaveService {
 	return &LeaveService{repo: r}
 }
 
-func (s *LeaveService) ApplyLeave(req dto.LeaveRequest) error {
-	return s.repo.LeaveRepository.InsertLeave(req.EmployeeID, req.Reason, req.Days)
+func (s *LeaveService) Create(ctx context.Context, cmd dto.LeaveRecordCreateCommand) error {
+	cmd.ID = util.GetUniqueID()
+	cmd.Status = enum.LeaveRecordStatusPending
+	return s.repo.LeaveRepository.Create(ctx, cmd)
+}
+
+func (s *LeaveService) QueryLeaveType(ctx context.Context) ([]*dto.LeaveTypeResult, error) {
+	return s.repo.LeaveRepository.QueryLeaveType(ctx)
 }

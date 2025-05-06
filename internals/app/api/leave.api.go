@@ -3,6 +3,8 @@ package api
 import (
 	"FliQt/internals/app/dto"
 	"FliQt/internals/app/service"
+	"FliQt/pkg/redisx"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -10,34 +12,46 @@ import (
 var _ ILeaveAPI = (*LeaveAPI)(nil)
 
 type ILeaveAPI interface {
-	Apply(c *gin.Context)
 	Create(c *gin.Context)
+	QueryLeaveTypes(c *gin.Context)
 }
 
 type LeaveAPI struct {
-	srv *service.Srv
+	srv   *service.Srv
+	redis *redisx.Bundle
 }
 
-func NewLeaveAPI(srv *service.Srv) ILeaveAPI {
-	return &LeaveAPI{srv: srv}
-}
-
-func (a *LeaveAPI) Apply(c *gin.Context) {
-	var req dto.LeaveRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if err := a.srv.LeaveService.ApplyLeave(req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "leave request submitted"})
+func NewLeaveAPI(srv *service.Srv, redis *redisx.Bundle) ILeaveAPI {
+	return &LeaveAPI{srv: srv, redis: redis}
 }
 
 func (a *LeaveAPI) Create(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "leave request submitted"})
-	return
+	var params dto.LeaveRecordCreateCommand
+	if err := c.ShouldBindJSON(params); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx := c.Request.Context()
+	key := fmt.Sprintf("lock_leave_%d", params.EmployeeID)
+	unlock, err := a.redis.Locker.AntiReSubmit(ctx, key)
+	defer unlock()
+	if err != nil {
+		c.JSON(http.StatusTooManyRequests, gin.H{"error": err.Error()})
+		return
+	}
+	if err = a.srv.LeaveService.Create(ctx, params); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
+func (a *LeaveAPI) QueryLeaveTypes(c *gin.Context) {
+	ctx := c.Request.Context()
+	result, err := a.srv.LeaveService.QueryLeaveType(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"result": result})
 }

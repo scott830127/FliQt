@@ -2,11 +2,10 @@ package router
 
 import (
 	"FliQt/internals/app/api"
-	"FliQt/internals/app/config"
 	"github.com/gin-gonic/gin"
 )
 
-func New(cfg *config.Config, leaveAPI api.ILeaveAPI) *gin.Engine {
+func New(leaveAPI api.ILeaveAPI) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery())
 
@@ -17,6 +16,7 @@ func New(cfg *config.Config, leaveAPI api.ILeaveAPI) *gin.Engine {
 	fliqt := r.Group("/fliqt")
 	{
 		fliqt.POST("/leave", leaveAPI.Create)
+		fliqt.GET("/type", leaveAPI.QueryLeaveTypes)
 	}
 
 	return r

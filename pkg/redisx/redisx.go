@@ -14,6 +14,7 @@ type Config struct {
 
 type Bundle struct {
 	Client *redis.Client
+	Locker *Locker
 }
 
 func NewRedisBundle(cfg Config) (*Bundle, error) {

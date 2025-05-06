@@ -3,6 +3,7 @@ package main
 import (
 	"FliQt/internals/app"
 	"FliQt/internals/app/config"
+	"FliQt/pkg/util"
 	"flag"
 	"log"
 	"os"
@@ -18,7 +19,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
-
+	const machineID uint16 = 1
+	if err = util.NewSonyFlake(machineID); err != nil {
+		panic(err)
+	}
 	application, cleanup, err := app.Start(cfg)
 	if err != nil {
 		log.Fatalf("failed to start app: %v", err)

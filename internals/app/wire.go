@@ -11,6 +11,7 @@ import (
 	"FliQt/internals/app/repository"
 	"FliQt/internals/app/router"
 	"FliQt/internals/app/service"
+	"FliQt/pkg/di"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
@@ -25,6 +26,7 @@ func injector(cfg *config.Config) (*Application, func(), error) {
 		service.WireSet,
 		api.WireSet,
 		router.New,
+		di.WireSet,
 		wire.Struct(new(Application), "*"),
 	)
 	return nil, nil, nil

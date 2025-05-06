@@ -4,8 +4,10 @@ port = ":8080"
 [mysql]
 enabled = true
 type = "mysql"
-host = "127.0.0.1"
-port = 3308
+host = "mysql"   # docker-compose service name
+#host = "127.0.0.1" # local
+port = 3306
+#port = 3308 # local
 user = "root"
 password = "123456"
 dbname = "fliqt"
@@ -16,6 +18,7 @@ max_open_conn = 100
 debug = true
 
 [redis]
-addr = "localhost:6380"
+addr = "redis:6379"
+#addr = "localhost:6380" # local
 password = ""
 db = 0

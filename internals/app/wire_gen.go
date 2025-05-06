@@ -12,13 +12,22 @@ import (
 	"FliQt/internals/app/repository"
 	"FliQt/internals/app/router"
 	"FliQt/internals/app/service"
+	"FliQt/pkg/di"
 	"github.com/gin-gonic/gin"
 )
 
 // Injectors from wire.go:
 
 func injector(cfg *config.Config) (*Application, func(), error) {
-	iLeaveRepository := repository.NewLeaveRepository()
+	bundle, err := di.NewRedisBundle(cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+	db, cleanup, err := di.NewMainDB(cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+	iLeaveRepository := repository.NewLeaveRepository(bundle, db)
 	repo := &repository.Repo{
 		LeaveRepository: iLeaveRepository,
 	}
@@ -26,12 +35,13 @@ func injector(cfg *config.Config) (*Application, func(), error) {
 	srv := &service.Srv{
 		LeaveService: iLeaveService,
 	}
-	iLeaveAPI := api.NewLeaveAPI(srv)
-	engine := router.New(cfg, iLeaveAPI)
+	iLeaveAPI := api.NewLeaveAPI(srv, bundle)
+	engine := router.New(iLeaveAPI)
 	application := &Application{
 		Engine: engine,
 	}
 	return application, func() {
+		cleanup()
 	}, nil
 }
 

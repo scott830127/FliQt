@@ -8,12 +8,21 @@ import (
 
 var WireRedisSet = wire.NewSet(
 	NewRedisBundle,
+	NewRedisLock,
 )
 
-func NewRedisBundle() (*redisx.Bundle, error) {
+func NewRedisBundle(cfg *config.Config) (*redisx.Bundle, error) {
 	return redisx.NewRedisBundle(redisx.Config{
-		Addr:     config.C.Redis.Addr,
-		Password: config.C.Redis.Password,
-		DB:       config.C.Redis.DB,
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+}
+
+func NewRedisLock(cfg *config.Config) (*redisx.Locker, func(), error) {
+	return redisx.NewLocker(redisx.Config{
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
 	})
 }
