@@ -27,7 +27,7 @@ func NewLeaveAPI(srv *service.Srv, redis *redisx.Bundle) ILeaveAPI {
 
 func (a *LeaveAPI) Create(c *gin.Context) {
 	var params dto.LeaveRecordCreateCommand
-	if err := c.ShouldBindJSON(params); err != nil {
+	if err := c.ShouldBindJSON(&params); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

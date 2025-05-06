@@ -30,5 +30,5 @@ func (s *LeaveService) Create(ctx context.Context, cmd dto.LeaveRecordCreateComm
 }
 
 func (s *LeaveService) QueryTypes(ctx context.Context) ([]*dto.LeaveTypeResult, error) {
-	return s.repo.LeaveRepository.QueryLeaveType(ctx)
+	return s.repo.LeaveRepository.QueryTypes(ctx)
 }

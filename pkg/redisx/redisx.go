@@ -17,7 +17,7 @@ type Bundle struct {
 	Locker *Locker
 }
 
-func NewRedisBundle(cfg Config) (*Bundle, error) {
+func NewClient(cfg Config) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     cfg.Addr,
 		Password: cfg.Password,
@@ -27,5 +27,5 @@ func NewRedisBundle(cfg Config) (*Bundle, error) {
 	if err := client.Ping(ctx).Err(); err != nil {
 		return nil, fmt.Errorf("redis ping failed: %w", err)
 	}
-	return &Bundle{Client: client}, nil
+	return client, nil
 }

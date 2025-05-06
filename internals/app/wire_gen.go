@@ -13,18 +13,28 @@ import (
 	"FliQt/internals/app/router"
 	"FliQt/internals/app/service"
 	"FliQt/pkg/di"
+	"FliQt/pkg/redisx"
 	"github.com/gin-gonic/gin"
 )
 
 // Injectors from wire.go:
 
 func injector(cfg *config.Config) (*Application, func(), error) {
-	bundle, err := di.NewRedisBundle(cfg)
+	client, err := di.NewRedisClient(cfg)
 	if err != nil {
 		return nil, nil, err
 	}
-	db, cleanup, err := di.NewMainDB(cfg)
+	locker, cleanup, err := di.NewRedisLock(cfg)
 	if err != nil {
+		return nil, nil, err
+	}
+	bundle := &redisx.Bundle{
+		Client: client,
+		Locker: locker,
+	}
+	db, cleanup2, err := di.NewMainDB(cfg)
+	if err != nil {
+		cleanup()
 		return nil, nil, err
 	}
 	iLeaveRepository := repository.NewLeaveRepository(bundle, db)
@@ -41,6 +51,7 @@ func injector(cfg *config.Config) (*Application, func(), error) {
 		Engine: engine,
 	}
 	return application, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }

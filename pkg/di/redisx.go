@@ -4,15 +4,17 @@ import (
 	"FliQt/internals/app/config"
 	"FliQt/pkg/redisx"
 	"github.com/google/wire"
+	"github.com/redis/go-redis/v9"
 )
 
 var WireRedisSet = wire.NewSet(
-	NewRedisBundle,
 	NewRedisLock,
+	NewRedisClient,
+	wire.Struct(new(redisx.Bundle), "*"),
 )
 
-func NewRedisBundle(cfg *config.Config) (*redisx.Bundle, error) {
-	return redisx.NewRedisBundle(redisx.Config{
+func NewRedisClient(cfg *config.Config) (*redis.Client, error) {
+	return redisx.NewClient(redisx.Config{
 		Addr:     cfg.Redis.Addr,
 		Password: cfg.Redis.Password,
 		DB:       cfg.Redis.DB,
