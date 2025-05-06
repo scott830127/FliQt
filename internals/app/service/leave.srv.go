@@ -12,7 +12,7 @@ var _ ILeaveService = (*LeaveService)(nil)
 
 type ILeaveService interface {
 	Create(ctx context.Context, cmd dto.LeaveRecordCreateCommand) error
-	QueryLeaveType(ctx context.Context) ([]*dto.LeaveTypeResult, error)
+	QueryTypes(ctx context.Context) ([]*dto.LeaveTypeResult, error)
 }
 
 type LeaveService struct {
@@ -29,6 +29,6 @@ func (s *LeaveService) Create(ctx context.Context, cmd dto.LeaveRecordCreateComm
 	return s.repo.LeaveRepository.Create(ctx, cmd)
 }
 
-func (s *LeaveService) QueryLeaveType(ctx context.Context) ([]*dto.LeaveTypeResult, error) {
+func (s *LeaveService) QueryTypes(ctx context.Context) ([]*dto.LeaveTypeResult, error) {
 	return s.repo.LeaveRepository.QueryLeaveType(ctx)
 }

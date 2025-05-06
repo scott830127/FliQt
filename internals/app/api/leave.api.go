@@ -13,7 +13,7 @@ var _ ILeaveAPI = (*LeaveAPI)(nil)
 
 type ILeaveAPI interface {
 	Create(c *gin.Context)
-	QueryLeaveTypes(c *gin.Context)
+	QueryTypes(c *gin.Context)
 }
 
 type LeaveAPI struct {
@@ -46,9 +46,9 @@ func (a *LeaveAPI) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
-func (a *LeaveAPI) QueryLeaveTypes(c *gin.Context) {
+func (a *LeaveAPI) QueryTypes(c *gin.Context) {
 	ctx := c.Request.Context()
-	result, err := a.srv.LeaveService.QueryLeaveType(ctx)
+	result, err := a.srv.LeaveService.QueryTypes(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

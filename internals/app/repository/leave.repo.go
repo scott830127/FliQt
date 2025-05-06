@@ -14,7 +14,7 @@ var _ ILeaveRepository = (*LeaveRepository)(nil)
 
 type ILeaveRepository interface {
 	Create(ctx context.Context, cmd dto.LeaveRecordCreateCommand) error
-	QueryLeaveType(ctx context.Context) ([]*dto.LeaveTypeResult, error)
+	QueryTypes(ctx context.Context) ([]*dto.LeaveTypeResult, error)
 }
 
 type LeaveRepository struct {
@@ -42,7 +42,7 @@ func (r *LeaveRepository) Create(ctx context.Context, cmd dto.LeaveRecordCreateC
 	return r.db.WithContext(ctx).Create(&record).Error
 }
 
-func (r *LeaveRepository) QueryLeaveType(ctx context.Context) ([]*dto.LeaveTypeResult, error) {
+func (r *LeaveRepository) QueryTypes(ctx context.Context) ([]*dto.LeaveTypeResult, error) {
 	const redisKey = "leave_type"
 	var results []*dto.LeaveTypeResult
 	if err := r.redis.Client.Get(ctx, redisKey).Scan(&results); err == nil && len(results) > 0 {

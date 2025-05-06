@@ -16,7 +16,7 @@ func New(leaveAPI api.ILeaveAPI) *gin.Engine {
 	fliqt := r.Group("/fliqt")
 	{
 		fliqt.POST("/leave", leaveAPI.Create)
-		fliqt.GET("/type", leaveAPI.QueryLeaveTypes)
+		fliqt.GET("/leave/type", leaveAPI.QueryTypes)
 	}
 
 	return r
