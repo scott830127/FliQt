@@ -18,7 +18,6 @@ func AutoMigrate() []any {
 
 func SeedInitialData(db *gorm.DB) error {
 	var count int64
-
 	// 員工
 	db.Model(&Employee{}).Count(&count)
 	if count == 0 {
@@ -30,7 +29,6 @@ func SeedInitialData(db *gorm.DB) error {
 			return err
 		}
 	}
-
 	// 假別類型
 	db.Model(&LeaveType{}).Count(&count)
 	if count == 0 {
@@ -42,6 +40,46 @@ func SeedInitialData(db *gorm.DB) error {
 			return err
 		}
 	}
-
+	// LeaveQuota：先查員工與假別後批次建立
+	var employees []Employee
+	var leaveTypes []LeaveType
+	if err := db.Find(&employees).Error; err != nil {
+		return err
+	}
+	if err := db.Find(&leaveTypes).Error; err != nil {
+		return err
+	}
+	type quotaEntry struct {
+		LeaveTypeID uint
+		Hours       int
+	}
+	// 建立對應的配額邏輯
+	quotaMap := map[string]quotaEntry{
+		"特休": {LeaveTypeID: 1, Hours: 80},
+		"病假": {LeaveTypeID: 2, Hours: 40},
+	}
+	var quotas []LeaveQuota
+	now := time.Now()
+	for _, emp := range employees {
+		for _, lt := range leaveTypes {
+			if entry, ok := quotaMap[lt.Name]; ok {
+				quotas = append(quotas, LeaveQuota{
+					ID:          util.GetUniqueID(),
+					EmployeeID:  emp.ID,
+					LeaveTypeID: entry.LeaveTypeID,
+					TotalHours:  entry.Hours,
+					UsedHours:   0,
+					UpdatedAt:   now,
+				})
+			}
+		}
+	}
+	// 避免重複建立
+	db.Model(&LeaveQuota{}).Count(&count)
+	if count == 0 {
+		if err := db.Create(&quotas).Error; err != nil {
+			return err
+		}
+	}
 	return nil
 }
